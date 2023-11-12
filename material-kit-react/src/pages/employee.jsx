@@ -1,17 +1,17 @@
 import { Helmet } from 'react-helmet-async';
 
-import { AppView } from 'src/sections/overview/view';
+import { EmployeeView } from '../sections/employee/view';
 
 // ----------------------------------------------------------------------
 
-export default function AppPage() {
+export default function EmployeePage() {
   return (
     <>
       <Helmet>
-        <title> Apollonia Dental Practice </title>
+        <title> Employees </title>
       </Helmet>
 
-      <AppView />
+      <EmployeeView />
     </>
   );
 }

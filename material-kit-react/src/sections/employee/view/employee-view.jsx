@@ -18,15 +18,15 @@ import TableNoData from '../table-no-data';
 import axios from '../../../utils/axiosapi';
 import TableEmptyRows from '../table-empty-rows';
 import Iconify from '../../../components/iconify';
+import EmployeeTableRow from '../employee-table-row';
 import Scrollbar from '../../../components/scrollbar';
-import DepartmentTableRow from '../department-table-row';
-import DepartmentTableHead from '../department-table-head';
-import DepartmentTableToolbar from '../department-table-toolbar';
+import EmployeeTableHead from '../employee-table-head';
+import EmployeeTableToolbar from '../employee-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 
 // ----------------------------------------------------------------------
 
-export default function DepartmentPage() {
+export default function EmployeePage() {
   const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogParams, setDialogParams] = useState({});
@@ -36,7 +36,7 @@ export default function DepartmentPage() {
 
   const [selected] = useState([]);
 
-  const [departments, setDepartments] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
   const [orderBy] = useState('name');
 
@@ -45,10 +45,10 @@ export default function DepartmentPage() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const getData = async () => {
-    await axios.get(`departments`).then((res) => {
-      setDepartments(res.data.deps);
+    await axios.get(`employees`).then((res) => {
+      setEmployees(res.data.employees);
     }).catch(error => { })
-      // .finally(() => setIsLoading(false));
+    // .finally(() => setIsLoading(false));
   };
 
   useEffect(() => {
@@ -58,8 +58,8 @@ export default function DepartmentPage() {
 
   const handleAddButton = () => {
     const params = {
-      title: 'Add department',
-      text: 'Create a new department',
+      title: 'Add employee',
+      text: 'Create a new employee',
       acction: 'create',
       onClose: () => setDialogOpen(false),
       onRefresh: () => {
@@ -70,11 +70,11 @@ export default function DepartmentPage() {
     setDialogOpen(true);
   };
 
-  const handleDeleteButton = (id, name) => {
+  const handleDeleteButton = (id, name, lastName) => {
     const params = {
       id,
-      title: 'Delete department',
-      text: `Do you want to delete the department of "${name}"?`,
+      title: 'Delete Employee',
+      text: `Do you want to delete the employee - "${name} ${lastName}"?`,
       acction: 'delete',
       onClose: () => setDialogOpen(false),
       onRefresh: () => {
@@ -85,12 +85,14 @@ export default function DepartmentPage() {
     setDialogOpen(true);
   };
 
-  const handleUpdateButton = (id, name) => {
+  const handleUpdateButton = (id, name, lastName, departmentId) => {
     const params = {
       id,
       name,
-      title: 'Update department',
-      text: `Do you want to update the department of "${name}"?`,
+      lastName,
+      departmentId,
+      title: 'Update Employee',
+      text: `Do you want to update the employee - "${name} ${lastName}"?`,
       acction: 'update',
       onClose: () => setDialogOpen(false),
       onRefresh: () => {
@@ -116,7 +118,7 @@ export default function DepartmentPage() {
   };
 
   const dataFiltered = applyFilter({
-    inputData: departments,
+    inputData: employees,
     comparator: getComparator(order, orderBy),
     filterName,
   });
@@ -126,15 +128,15 @@ export default function DepartmentPage() {
   return (
     <Container>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-        <Typography variant="h4">Departments</Typography>
+        <Typography variant="h4">Employees</Typography>
 
         <Button variant="contained" color="inherit" startIcon={<Iconify icon="eva:plus-fill" />} onClick={() => handleAddButton()}>
-          New Department
+          New Employee
         </Button>
       </Stack>
 
       <Card>
-        <DepartmentTableToolbar
+        <EmployeeTableToolbar
           numSelected={selected.length}
           filterName={filterName}
           onFilterName={handleFilterByName}
@@ -143,15 +145,16 @@ export default function DepartmentPage() {
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
             <Table sx={{ minWidth: 800 }}>
-              <DepartmentTableHead
+              <EmployeeTableHead
                 order={order}
                 orderBy={orderBy}
-                rowCount={departments.length}
+                rowCount={employees.length}
                 numSelected={selected.length}
                 // onRequestSort={handleSort}
                 // onSelectAllClick={handleSelectAllClick}
                 headLabel={[
                   { id: 'name', label: 'Name' },
+                  { id: 'department', label: 'Department' },
                   { id: '' },
                 ]}
               />
@@ -159,20 +162,22 @@ export default function DepartmentPage() {
                 {dataFiltered
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => (
-                    <DepartmentTableRow
+                    <EmployeeTableRow
                       key={row._id}
                       id={row._id}
                       name={row.name}
+                      lastName={row.lastName}
+                      depId={row.departmentId}
                       selected={selected.indexOf(row.name) !== -1}
                       onDelete = {handleDeleteButton}
                       onUpdate = {handleUpdateButton}
-                      // handleClick={(event) => handleClick(event, row.name)}
+                    // handleClick={(event) => handleClick(event, row.name)}
                     />
                   ))}
 
                 <TableEmptyRows
                   height={77}
-                  emptyRows={emptyRows(page, rowsPerPage, departments.length)}
+                  emptyRows={emptyRows(page, rowsPerPage, employees.length)}
                 />
 
                 {notFound && <TableNoData query={filterName} />}
@@ -184,18 +189,18 @@ export default function DepartmentPage() {
         <TablePagination
           page={page}
           component="div"
-          count={departments.length}
+          count={employees.length}
           rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           rowsPerPageOptions={[5, 10, 25]}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
 
-          <PopupDialog open={dialogOpen} dialogParams={dialogParams}>
-            {dialogParams.acction === 'delete' && <DeleteForm params={dialogParams}/>}
-            {dialogParams.acction === 'update' && <UpdateForm params={dialogParams}/>}
-            {dialogParams.acction === 'create' && <CreateForm params={dialogParams}/>}
-          </PopupDialog>
+        <PopupDialog open={dialogOpen} dialogParams={dialogParams}>
+          {dialogParams.acction === 'delete' && <DeleteForm params={dialogParams} />}
+          {dialogParams.acction === 'update' && <UpdateForm params={dialogParams} />}
+          {dialogParams.acction === 'create' && <CreateForm params={dialogParams} />}
+        </PopupDialog>
       </Card>
     </Container>
   );

@@ -1,32 +1,39 @@
-import { useState } from 'react';
+/* eslint-disable import/extensions */
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 
 import Stack from '@mui/material/Stack';
-// import Avatar from '@mui/material/Avatar';
 import Popover from '@mui/material/Popover';
 import TableRow from '@mui/material/TableRow';
-// import Checkbox from '@mui/material/Checkbox';
 import MenuItem from '@mui/material/MenuItem';
 import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 
-import Label from '../../components/label';
+import axios from '../../utils/axiosapi';
 import Iconify from '../../components/iconify';
 
 // ----------------------------------------------------------------------
 
-export default function UserTableRow({
+export default function EmployeeTableRow({
   selected,
+  id,
   name,
-  avatarUrl,
-  company,
-  role,
-  isVerified,
-  status,
-  handleClick,
+  lastName,
+  depId,
+  onDelete,
+  onUpdate
 }) {
   const [open, setOpen] = useState(null);
+  const [department, setDepartment] = useState({});
+
+  useEffect(() => {
+    axios.get(`departments`
+    ).then((res) => {
+      const dep = res.data.deps.find(x => x._id === depId);
+      setDepartment(dep);
+    }).catch(error => { })
+  },[depId]);
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -39,27 +46,21 @@ export default function UserTableRow({
   return (
     <>
       <TableRow hover tabIndex={-1} role="checkbox" selected={selected}>
-        {/* <TableCell padding="checkbox">
-          <Checkbox disableRipple checked={selected} onChange={handleClick} />
-        </TableCell> */}
 
         <TableCell component="th" scope="row" padding="none">
           <Stack direction="row" alignItems="center" spacing={2}>
-            {/* <Avatar alt={name} src={avatarUrl} /> */}
             <Typography variant="subtitle2" noWrap sx={{ pl: 2 }}>
-              {name}
+              {name} {lastName}
             </Typography>
           </Stack>
         </TableCell>
 
-        <TableCell>{company}</TableCell>
-
-        <TableCell>{role}</TableCell>
-
-        <TableCell align="center">{isVerified ? 'Yes' : 'No'}</TableCell>
-
-        <TableCell>
-          <Label color={(status === 'banned' && 'error') || 'success'}>{status}</Label>
+        <TableCell component="th" scope="row" padding="none">
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Typography variant="subtitle2" noWrap sx={{ pl: 2 }}>
+              {department.name}
+            </Typography>
+          </Stack>
         </TableCell>
 
         <TableCell align="right">
@@ -75,16 +76,13 @@ export default function UserTableRow({
         onClose={handleCloseMenu}
         anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: { width: 140 },
-        }}
       >
-        <MenuItem onClick={handleCloseMenu}>
+        <MenuItem onClick={() => onUpdate(id, name, lastName, depId)}>
           <Iconify icon="eva:edit-fill" sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem onClick={handleCloseMenu} sx={{ color: 'error.main' }}>
+        <MenuItem onClick={() => onDelete(id, name, lastName)} sx={{ color: 'error.main' }}>
           <Iconify icon="eva:trash-2-outline" sx={{ mr: 2 }} />
           Delete
         </MenuItem>
@@ -93,13 +91,12 @@ export default function UserTableRow({
   );
 }
 
-UserTableRow.propTypes = {
-  avatarUrl: PropTypes.any,
-  company: PropTypes.any,
-  handleClick: PropTypes.func,
-  isVerified: PropTypes.any,
+EmployeeTableRow.propTypes = {
   name: PropTypes.any,
-  role: PropTypes.any,
+  id: PropTypes.any,
+  lastName: PropTypes.any,
+  depId: PropTypes.any,
   selected: PropTypes.any,
-  status: PropTypes.string,
+  onDelete: PropTypes.any,
+  onUpdate: PropTypes.any,
 };
